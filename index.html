@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Complaint Portal</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Serif+Display&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #F4F1EB;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 480px;
+      border: 1px solid #E0DBD0;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .icon {
+      width: 52px;
+      height: 52px;
+      background: #1A1A1A;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+    }
+
+    .icon svg { width: 26px; height: 26px; fill: #F4F1EB; }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      font-weight: 400;
+      color: #1A1A1A;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #8A8578;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #4A4740;
+      margin-bottom: 8px;
+      letter-spacing: 0.03em;
+    }
+
+    textarea {
+      width: 100%;
+      height: 130px;
+      border: 1.5px solid #E0DBD0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: #1A1A1A;
+      background: #FAFAF8;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.6;
+    }
+
+    textarea:focus { border-color: #1A1A1A; background: #ffffff; }
+    textarea::placeholder { color: #B0AB9F; }
+
+    .char-count {
+      text-align: right;
+      font-size: 12px;
+      color: #B0AB9F;
+      margin-top: 6px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 1.25rem;
+      background: #1A1A1A;
+      color: #F4F1EB;
+      border: none;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button:hover { background: #333; }
+    button:active { transform: scale(0.98); }
+    button:disabled { background: #B0AB9F; cursor: not-allowed; }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(244,241,235,0.4);
+      border-top-color: #F4F1EB;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .response-box {
+      margin-top: 1.5rem;
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .response-box.success { background: #F0F7EE; border: 1px solid #C4DFC0; }
+    .response-box.error   { background: #FDF0EE; border: 1px solid #F0C4BC; }
+
+    .response-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .success .status-dot { background: #3D8A36; }
+    .error   .status-dot { background: #C04030; }
+
+    .status-text {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .success .status-text { color: #2D6828; }
+    .error   .status-text { color: #A03028; }
+
+    .category-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .badge-road    { background: #FFF8E6; color: #7A5500; border: 1px solid #E8D5A0; }
+    .badge-water   { background: #E6F2FF; color: #154F8A; border: 1px solid #A8CCF0; }
+    .badge-garbage { background: #EEFBE8; color: #235220; border: 1px solid #A8D9A0; }
+    .badge-default { background: #F0EEF8; color: #3D3070; border: 1px solid #C8C0E8; }
+
+    .category-label {
+      font-size: 12px;
+      color: #8A8578;
+      margin-bottom: 6px;
+    }
+
+    .error-msg {
+      font-size: 14px;
+      color: #A03028;
+    }
+
+    .divider {
+      height: 1px;
+      background: #E0DBD0;
+      margin: 1.5rem 0;
+    }
+
+    .complaints-section { margin-top: 0.5rem; }
+
+    .section-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #4A4740;
+      margin-bottom: 12px;
+    }
+
+    .complaint-item {
+      padding: 10px 14px;
+      background: #FAFAF8;
+      border: 1px solid #E8E4DC;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .complaint-item .item-text {
+      font-size: 14px;
+      color: #2A2820;
+      flex: 1;
+      line-height: 1.5;
+    }
+
+    .mini-badge {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 1.5rem;
+      color: #B0AB9F;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+      </svg>
+    </div>
+    <h1>Complaint Portal</h1>
+    <p class="subtitle">Submit your civic complaints — we'll categorize them instantly</p>
+  </div>
+
+  <!-- Form -->
+  <label for="complaintText">Your complaint</label>
+  <textarea
+    id="complaintText"
+    placeholder="E.g. Road has a big pothole near the market..."
+    maxlength="500"
+  ></textarea>
+  <div class="char-count"><span id="charCount">0</span> / 500</div>
+
+  <button id="submitBtn" onclick="submitComplaint()">
+    <div class="spinner" id="spinner"></div>
+    <span id="btnText">Submit Complaint</span>
+  </button>
+
+  <!-- Response Box -->
+  <div class="response-box" id="responseBox">
+    <div class="response-top">
+      <div class="status-dot"></div>
+      <span class="status-text" id="statusText"></span>
+    </div>
+    <div id="responseContent"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Complaints List -->
+  <div class="complaints-section">
+    <div class="section-label">Recent complaints</div>
+    <div id="complaintsList">
+      <div class="empty-state">No complaints yet</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API = "http://127.0.0.1:5000";
+
+  // Character counter
+  document.getElementById("complaintText").addEventListener("input", function() {
+    document.getElementById("charCount").textContent = this.value.length;
+  });
+
+  // Badge styling per category
+  function getBadgeClass(category) {
+    const map = { road: "badge-road", water: "badge-water", garbage: "badge-garbage" };
+    return map[category] || "badge-default";
+  }
+
+  function getCategoryIcon(category) {
+    const icons = { road: "🛣", water: "💧", garbage: "🗑" };
+    return icons[category] || "📋";
+  }
+
+  // Submit complaint
+  async function submitComplaint() {
+    const text = document.getElementById("complaintText").value.trim();
+
+    if (!text) {
+      showResponse("error", "Please write your complaint first.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API}/submit-complaint`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        const badgeClass = getBadgeClass(data.category);
+        const icon = getCategoryIcon(data.category);
+        showResponse("success", `
+          <div class="category-label">Detected category</div>
+          <span class="category-badge ${badgeClass}">${icon} ${data.category}</span>
+        `);
+        document.getElementById("complaintText").value = "";
+        document.getElementById("charCount").textContent = "0";
+        loadComplaints();
+      } else {
+        showResponse("error", `<span class="error-msg">${data.error || "Something went wrong."}</span>`);
+      }
+
+    } catch (err) {
+      showResponse("error", `<span class="error-msg">Cannot connect to server. Make sure Flask is running.</span>`);
+    }
+
+    setLoading(false);
+  }
+
+  // Load all complaints
+  async function loadComplaints() {
+    try {
+      const res  = await fetch(`${API}/complaints`);
+      const data = await res.json();
+      const list = document.getElementById("complaintsList");
+
+      if (!data.length) {
+        list.innerHTML = '<div class="empty-state">No complaints yet</div>';
+        return;
+      }
+
+      list.innerHTML = data.slice().reverse().map(c => `
+        <div class="complaint-item">
+          <span class="item-text">${c.text}</span>
+          <span class="mini-badge ${getBadgeClass(c.category)}">${getCategoryIcon(c.category)} ${c.category}</span>
+        </div>
+      `).join("");
+
+    } catch (err) {
+      console.log("Could not load complaints:", err);
+    }
+  }
+
+  function showResponse(type, html) {
+    const box = document.getElementById("responseBox");
+    box.className = `response-box ${type}`;
+    box.style.display = "block";
+    document.getElementById("statusText").textContent = type === "success" ? "Complaint received" : "Error";
+    document.getElementById("responseContent").innerHTML = html;
+  }
+
+  function setLoading(loading) {
+    const btn     = document.getElementById("submitBtn");
+    const spinner = document.getElementById("spinner");
+    const text    = document.getElementById("btnText");
+    btn.disabled        = loading;
+    spinner.style.display = loading ? "block" : "none";
+    text.textContent    = loading ? "Submitting..." : "Submit Complaint";
+  }
+
+  // Load complaints on page open
+  loadComplaints();
+</script>
+
+</body>
+</html>
