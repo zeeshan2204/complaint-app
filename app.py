@@ -106,7 +106,7 @@ def predict_category(text):
 
 @app.route("/")
 def home():
-    return send_file("index.html")   # 🔥 UI serve karega
+    return send_file("index.html") 
 
 @app.route("/submit-complaint", methods=["POST"])
 def submit_complaint():
