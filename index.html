@@ -295,6 +295,7 @@
 </div>
 
 <script>
+  const API = "https://complaint-app-y95q.onrender.com";
 
   // Character counter
   document.getElementById("complaintText").addEventListener("input", function() {
@@ -324,7 +325,7 @@
     setLoading(true);
 
     try {
-      const res = await fetch(`/submit-complaint`, {
+      const res = await fetch(`${API}/submit-complaint`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text })
@@ -356,7 +357,7 @@
   // Load all complaints
   async function loadComplaints() {
     try {
-      const res  = await fetch(`/complaints`);
+      const res  = await fetch(`${API}/complaints`);
       const data = await res.json();
       const list = document.getElementById("complaintsList");
 
