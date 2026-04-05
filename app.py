@@ -48,11 +48,17 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 @app.route("/")
 def home():
-    return send_file(os.path.join(BASE_DIR, "index.html"))
+    response = send_file(os.path.join(BASE_DIR, "index.html"))
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    return response
 
 @app.route("/admin")
 def admin():
-    return send_file(os.path.join(BASE_DIR, "admin.html"))
+    response = send_file(os.path.join(BASE_DIR, "admin.html"))
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    return response
 
 @app.route("/model-stats")
 def model_stats():
