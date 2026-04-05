@@ -1,5 +1,4 @@
 flask
-flask-sqlalchemy
 flask-cors
 scikit-learn
 gunicorn

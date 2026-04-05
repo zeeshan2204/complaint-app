@@ -1,5 +1,5 @@
-from flask import Flask, request, jsonify, send_file  
-from flask_sqlalchemy import SQLAlchemy
+import os
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -7,17 +7,8 @@ from sklearn.linear_model import LogisticRegression
 app = Flask(__name__)
 CORS(app)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///complaints.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-db = SQLAlchemy(app)
-
-class Complaint(db.Model):
-    id       = db.Column(db.Integer, primary_key=True)
-    text     = db.Column(db.String(500), nullable=False)
-    category = db.Column(db.String(50), nullable=True)
-
-    def to_dict(self):
-        return {"id": self.id, "text": self.text, "category": self.category}
+# Simple in-memory list — database ki jagah
+complaints_list = []
 
 train_texts = [
     "road is broken", "pothole on the street", "road needs repair",
@@ -43,17 +34,7 @@ train_texts = [
     "2 din se paani nahi aaya", "naali ka paani sadak pe aa gaya",
 ]
 
-train_labels = [
-    "road","road","road","road","road","road",
-    "road","road","road","road","road","road",
-    "road","road","road","road","road","road","road","road",
-    "garbage","garbage","garbage","garbage","garbage","garbage",
-    "garbage","garbage","garbage","garbage","garbage","garbage",
-    "garbage","garbage","garbage","garbage","garbage","garbage","garbage","garbage",
-    "water","water","water","water","water","water",
-    "water","water","water","water","water","water",
-    "water","water","water","water","water","water","water","water",
-]
+train_labels = ["road"] * 20 + ["garbage"] * 20 + ["water"] * 20
 
 vectorizer = TfidfVectorizer()
 X_train    = vectorizer.fit_transform(train_texts)
@@ -63,29 +44,31 @@ model.fit(X_train, train_labels)
 def predict_category(text):
     X = vectorizer.transform([text])
     return model.predict(X)[0]
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 @app.route("/")
 def home():
-    return send_file("index.html")
+    return send_file(os.path.join(BASE_DIR, "index.html"))
 
 @app.route("/submit-complaint", methods=["POST"])
 def submit_complaint():
-    data = request.get_json()
-    text = data.get("text", "")
-    if not text:
-        return jsonify({"error": "text field required"}), 400
-    category = predict_category(text)
-    new_complaint = Complaint(text=text, category=category)
-    db.session.add(new_complaint)
-    db.session.commit()
-    return jsonify({"message": "Complaint received", "category": category}), 200
+    try:
+        data = request.get_json(force=True)
+        if not data:
+            return jsonify({"error": "No JSON received"}), 400
+        text = data.get("text", "")
+        if not text:
+            return jsonify({"error": "text field required"}), 400
+        category = predict_category(text)
+        complaints_list.append({"id": len(complaints_list) + 1, "text": text, "category": category})
+        return jsonify({"message": "Complaint received", "category": category}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/complaints", methods=["GET"])
 def get_complaints():
-    all_complaints = Complaint.query.all()
-    result = [c.to_dict() for c in all_complaints]
-    return jsonify(result), 200
+    return jsonify(complaints_list), 200
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
