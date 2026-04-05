@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CivicVoice — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0D0D0F;
+  --surface:#16161A;
+  --surface2:#1E1E24;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --text:#F0EEE8;
+  --muted:#7A7880;
+  --accent:#C8F04A;
+  --accent-dim:rgba(200,240,74,0.12);
+  --road:#F5C842;--road-bg:rgba(245,200,66,0.1);
+  --water:#42B4F5;--water-bg:rgba(66,180,245,0.1);
+  --garbage:#6BCF7F;--garbage-bg:rgba(107,207,127,0.1);
+  --elec:#F57C42;--elec-bg:rgba(245,124,66,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* NAV */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.25rem 2rem;
+  border-bottom:1px solid var(--border);
+  background:rgba(13,13,15,0.9);
+  backdrop-filter:blur(12px);
+  position:sticky;top:0;z-index:100;
+}
+.logo{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;display:flex;align-items:center;gap:8px;}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-tag{font-size:11px;font-weight:600;font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);background:var(--accent-dim);padding:4px 12px;border-radius:999px;}
+.nav-link{font-size:13px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:999px;transition:all 0.2s;}
+.nav-link:hover{color:var(--text);border-color:var(--border2);}
+
+/* LAYOUT */
+.page{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+
+/* PAGE HEADER */
+.page-header{margin-bottom:2rem;animation:fadeUp 0.5s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.page-title{font-family:'Syne',sans-serif;font-size:1.75rem;font-weight:700;margin-bottom:4px;}
+.page-sub{font-size:14px;color:var(--muted);}
+
+/* STATS GRID */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:12px;
+  margin-bottom:2rem;
+  animation:fadeUp 0.5s 0.1s ease both;
+}
+.stat-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:1.25rem;
+}
+.stat-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:10px;}
+.stat-value{font-family:'Syne',sans-serif;font-size:2rem;font-weight:700;line-height:1;}
+.stat-card.total .stat-value{color:var(--accent);}
+.stat-card.road .stat-value{color:var(--road);}
+.stat-card.water .stat-value{color:var(--water);}
+.stat-card.garbage .stat-value{color:var(--garbage);}
+.stat-card.electricity .stat-value{color:var(--elec);}
+.stat-icon{font-size:20px;margin-bottom:8px;}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1.6fr;gap:16px;margin-bottom:2rem;animation:fadeUp 0.5s 0.2s ease both;}
+@media(max-width:700px){.two-col{grid-template-columns:1fr;}}
+
+/* CHART CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--text);margin-bottom:1.25rem;}
+
+/* BAR CHART */
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.bar-label{font-size:13px;color:var(--muted);width:80px;flex-shrink:0;}
+.bar-track{flex:1;height:8px;background:var(--surface2);border-radius:999px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:999px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+.bar-num{font-size:13px;font-weight:500;width:28px;text-align:right;flex-shrink:0;}
+.bar-fill.road{background:var(--road);}
+.bar-fill.water{background:var(--water);}
+.bar-fill.garbage{background:var(--garbage);}
+.bar-fill.electricity{background:var(--elec);}
+.bar-num.road{color:var(--road);}
+.bar-num.water{color:var(--water);}
+.bar-num.garbage{color:var(--garbage);}
+.bar-num.electricity{color:var(--elec);}
+
+/* MODEL STATS */
+.model-acc{
+  text-align:center;padding:1.5rem 1rem;
+  background:var(--accent-dim);
+  border:1px solid rgba(200,240,74,0.2);
+  border-radius:12px;
+  margin-bottom:1rem;
+}
+.acc-num{font-family:'Syne',sans-serif;font-size:2.5rem;font-weight:700;color:var(--accent);line-height:1;}
+.acc-label{font-size:12px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.06em;}
+.model-meta{display:flex;flex-direction:column;gap:8px;}
+.meta-row{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--border);}
+.meta-row:last-child{border-bottom:none;}
+.meta-key{color:var(--muted);}
+.meta-val{font-weight:500;color:var(--text);}
+
+/* TABLE */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;animation:fadeUp 0.5s 0.3s ease both;}
+.table-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.25rem 1.5rem;
+  border-bottom:1px solid var(--border);
+}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;}
+.filter-btn{
+  font-size:12px;padding:5px 12px;border-radius:999px;
+  border:1px solid var(--border);
+  background:transparent;color:var(--muted);
+  cursor:pointer;font-family:'Instrument Sans',sans-serif;
+  transition:all 0.15s;
+}
+.filter-btn:hover{border-color:var(--border2);color:var(--text);}
+.filter-btn.active{background:var(--accent);color:#0D0D0F;border-color:var(--accent);font-weight:500;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{
+  font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--muted);padding:10px 1.5rem;text-align:left;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+}
+td{padding:12px 1.5rem;font-size:14px;border-bottom:1px solid var(--border);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface2);}
+.td-id{color:var(--muted);font-size:12px;width:40px;}
+.td-text{color:var(--text);line-height:1.5;max-width:400px;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:500;}
+.badge.road{background:var(--road-bg);color:var(--road);}
+.badge.water{background:var(--water-bg);color:var(--water);}
+.badge.garbage{background:var(--garbage-bg);color:var(--garbage);}
+.badge.electricity{background:var(--elec-bg);color:var(--elec);}
+.empty-row td{text-align:center;color:var(--muted);padding:3rem;font-size:14px;}
+
+/* REFRESH */
+.refresh-btn{
+  font-size:12px;color:var(--muted);
+  background:transparent;border:1px solid var(--border);
+  padding:5px 12px;border-radius:999px;cursor:pointer;
+  font-family:'Instrument Sans',sans-serif;
+  transition:all 0.15s;
+}
+.refresh-btn:hover{color:var(--text);border-color:var(--border2);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><div class="logo-dot"></div>CivicVoice</div>
+  <div class="nav-right">
+    <span class="nav-tag">Admin</span>
+    <a href="/" class="nav-link">← Public Portal</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Live overview of all civic complaints and ML model performance</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card total">
+      <div class="stat-icon">📊</div>
+      <div class="stat-label">Total Complaints</div>
+      <div class="stat-value" id="statTotal">—</div>
+    </div>
+    <div class="stat-card road">
+      <div class="stat-icon">🛣</div>
+      <div class="stat-label">Road</div>
+      <div class="stat-value" id="statRoad">—</div>
+    </div>
+    <div class="stat-card water">
+      <div class="stat-icon">💧</div>
+      <div class="stat-label">Water</div>
+      <div class="stat-value" id="statWater">—</div>
+    </div>
+    <div class="stat-card garbage">
+      <div class="stat-icon">🗑</div>
+      <div class="stat-label">Garbage</div>
+      <div class="stat-value" id="statGarbage">—</div>
+    </div>
+    <div class="stat-card electricity">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-label">Electricity</div>
+      <div class="stat-value" id="statElec">—</div>
+    </div>
+  </div>
+
+  <!-- CHART + MODEL -->
+  <div class="two-col">
+
+    <!-- BAR CHART -->
+    <div class="card">
+      <div class="card-title">Category Breakdown</div>
+      <div id="barChart">
+        <div class="bar-row">
+          <span class="bar-label">Road</span>
+          <div class="bar-track"><div class="bar-fill road" id="barRoad" style="width:0%"></div></div>
+          <span class="bar-num road" id="barRoadNum">0</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Water</span>
+          <div class="bar-track"><div class="bar-fill water" id="barWater" style="width:0%"></div></div>
+          <span class="bar-num water" id="barWaterNum">0</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Garbage</span>
+          <div class="bar-track"><div class="bar-fill garbage" id="barGarbage" style="width:0%"></div></div>
+          <span class="bar-num garbage" id="barGarbageNum">0</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Electricity</span>
+          <div class="bar-track"><div class="bar-fill electricity" id="barElec" style="width:0%"></div></div>
+          <span class="bar-num electricity" id="barElecNum">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODEL STATS -->
+    <div class="card">
+      <div class="card-title">ML Model Performance</div>
+      <div class="model-acc">
+        <div class="acc-num" id="accNum">—</div>
+        <div class="acc-label">Model Accuracy</div>
+      </div>
+      <div class="model-meta">
+        <div class="meta-row"><span class="meta-key">Algorithm</span><span class="meta-val">Logistic Regression</span></div>
+        <div class="meta-row"><span class="meta-key">Vectorizer</span><span class="meta-val">TF-IDF</span></div>
+        <div class="meta-row"><span class="meta-key">Training Samples</span><span class="meta-val" id="metaTrain">—</span></div>
+        <div class="meta-row"><span class="meta-key">Test Samples</span><span class="meta-val" id="metaTest">—</span></div>
+        <div class="meta-row"><span class="meta-key">Categories</span><span class="meta-val">4</span></div>
+        <div class="meta-row"><span class="meta-key">Language</span><span class="meta-val">English + Hinglish</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMPLAINTS TABLE -->
+  <div class="table-card">
+    <div class="table-header">
+      <div class="card-title" style="margin:0;">All Complaints</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+          <button class="filter-btn" onclick="setFilter('road',this)">🛣 Road</button>
+          <button class="filter-btn" onclick="setFilter('water',this)">💧 Water</button>
+          <button class="filter-btn" onclick="setFilter('garbage',this)">🗑 Garbage</button>
+          <button class="filter-btn" onclick="setFilter('electricity',this)">⚡ Electricity</button>
+        </div>
+        <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Complaint Text</th>
+            <th>Category</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr class="empty-row"><td colspan="3">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let allComplaints=[];
+  let currentFilter="all";
+
+  function getIcon(c){return{road:"🛣",water:"💧",garbage:"🗑",electricity:"⚡"}[c]||"📋";}
+
+  async function loadAll(){
+    try{
+      const [compRes,statsRes]=await Promise.all([
+        fetch("/complaints"),
+        fetch("/model-stats")
+      ]);
+      allComplaints=await compRes.json();
+      const stats=await statsRes.json();
+
+      // Update stat cards
+      const counts={road:0,water:0,garbage:0,electricity:0};
+      allComplaints.forEach(c=>{if(counts[c.category]!==undefined)counts[c.category]++;});
+
+      document.getElementById("statTotal").textContent=allComplaints.length;
+      document.getElementById("statRoad").textContent=counts.road;
+      document.getElementById("statWater").textContent=counts.water;
+      document.getElementById("statGarbage").textContent=counts.garbage;
+      document.getElementById("statElec").textContent=counts.electricity;
+
+      // Bar chart
+      const max=Math.max(...Object.values(counts),1);
+      document.getElementById("barRoad").style.width=(counts.road/max*100)+"%";
+      document.getElementById("barWater").style.width=(counts.water/max*100)+"%";
+      document.getElementById("barGarbage").style.width=(counts.garbage/max*100)+"%";
+      document.getElementById("barElec").style.width=(counts.electricity/max*100)+"%";
+      document.getElementById("barRoadNum").textContent=counts.road;
+      document.getElementById("barWaterNum").textContent=counts.water;
+      document.getElementById("barGarbageNum").textContent=counts.garbage;
+      document.getElementById("barElecNum").textContent=counts.electricity;
+
+      // Model stats
+      document.getElementById("accNum").textContent=stats.accuracy+"%";
+      document.getElementById("metaTrain").textContent=stats.train_size;
+      document.getElementById("metaTest").textContent=stats.test_size;
+
+      renderTable();
+    } catch(e){
+      document.getElementById("tableBody").innerHTML='<tr class="empty-row"><td colspan="3">Could not load data</td></tr>';
+    }
+  }
+
+  function renderTable(){
+    const filtered=currentFilter==="all"
+      ?allComplaints
+      :allComplaints.filter(c=>c.category===currentFilter);
+
+    const tbody=document.getElementById("tableBody");
+    if(!filtered.length){
+      tbody.innerHTML='<tr class="empty-row"><td colspan="3">No complaints found</td></tr>';
+      return;
+    }
+    tbody.innerHTML=[...filtered].reverse().map(c=>`
+      <tr>
+        <td class="td-id">${c.id}</td>
+        <td class="td-text">${c.text}</td>
+        <td><span class="badge ${c.category}">${getIcon(c.category)} ${c.category}</span></td>
+      </tr>
+    `).join("");
+  }
+
+  function setFilter(f,btn){
+    currentFilter=f;
+    document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    renderTable();
+  }
+
+  loadAll();
+  setInterval(loadAll,30000); // auto-refresh every 30s
+</script>
+</body>
+</html>
